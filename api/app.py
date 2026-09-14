@@ -349,35 +349,28 @@ def server_error(e):
 
 
 # ============================================================
-# MAIN
+# STARTUP - LOAD MODELS AT IMPORT TIME
+# ============================================================
+# This MUST run at import so gunicorn picks up models in production.
+# gunicorn imports this file, so this code executes even when
+# __name__ != '__main__'.
+load_models()
+load_history()
+
+print()
+print("=" * 55)
+print("🚀 Solar Energy Predictor - Server Ready")
+print("=" * 55)
+print(f"📊 Models loaded: {len(models)}")
+print(f"📈 History entries: {len(prediction_history)}")
+print("=" * 55)
+print()
+
+
+# ============================================================
+# DEV SERVER
 # ============================================================
 if __name__ == '__main__':
-    load_models()
-    load_history()
-
-    print()
-    print("=" * 55)
-    print("🚀 Solar Energy Predictor - Server Starting")
-    print("=" * 55)
-    print(f"📊 Models loaded: {len(models)}")
-    print(f"📈 History entries: {len(prediction_history)}")
-    print()
-    print("🌐 Web Pages:")
-    print("   http://localhost:5000/          → Dashboard")
-    print("   http://localhost:5000/predict   → Predict")
-    print("   http://localhost:5000/models    → Models")
-    print("   http://localhost:5000/history   → History")
-    print("   http://localhost:5000/settings  → Settings")
-    print("   http://localhost:5000/about     → About")
-    print()
-    print("🔌 API Endpoints:")
-    print("   GET  /api/health")
-    print("   GET  /api/models")
-    print("   POST /api/predict")
-    print("   GET  /api/history")
-    print("   DEL  /api/history")
-    print("   GET  /api/history/export")
-    print("=" * 55)
-    print()
-
+    # Only run the dev server when this file is run directly
+    # (Production uses gunicorn which imports `app` from this module)
     app.run(host='0.0.0.0', port=5000, debug=True)
