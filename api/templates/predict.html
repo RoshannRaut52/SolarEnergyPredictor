@@ -140,12 +140,20 @@
             const model = document.getElementById('modelSelect').value;
 
             try {
-                const res = await fetch('/api/predict', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({features, model})
-                });
-                const data = await res.json();
+    const res = await fetch('/api/predict', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({features, model})
+    });
+
+    // Handle non-JSON response (e.g., 502 from crashed worker)
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Server returned non-JSON response. The model may have crashed. Try a different model.');
+    }
+
+    const data = await res.json();
+    ...
                 const box = document.getElementById('resultBox');
 
                 if (data.success) {

@@ -186,7 +186,10 @@ def home():
 @app.route('/predict')
 def predict_page():
     """Prediction page"""
-    return render_template('predict.html', models=list(models.keys()))
+    # Preferred order: Random Forest first (most reliable), then others
+    preferred = ['random_forest', 'gradient_boosting', 'lstm']
+    ordered = [m for m in preferred if m in models]
+    return render_template('predict.html', models=ordered)
 
 
 @app.route('/models')
@@ -239,18 +242,16 @@ def api_models():
 
 @app.route('/api/predict', methods=['POST', 'OPTIONS'])
 def api_predict():
-    """Make a prediction"""
     if request.method == 'OPTIONS':
         return '', 200
 
     try:
         data = request.get_json()
-
         if not data:
             return jsonify({'success': False, 'error': 'No data provided'}), 400
 
         features = data.get('features', {})
-        model_name = data.get('model', 'gradient_boosting')
+        model_name = data.get('model', 'random_forest')  # Default to RF!
 
         print(f"\n🔍 Prediction request:")
         print(f"   Model: {model_name}")
@@ -263,35 +264,44 @@ def api_predict():
                 'available_models': list(models.keys())
             }), 400
 
-        # Make prediction
+        # LSTM branch with extra safety
         if model_name == 'lstm':
-            X = prepare_features(features, 'lstm')
-            print(f"   LSTM input shape: {X.shape}")
+            try:
+                X = prepare_features(features, 'lstm')
+                print(f"   LSTM input shape: {X.shape}")
 
-            prediction_scaled = models['lstm'].predict(X, verbose=0)
+                prediction_scaled = models['lstm'].predict(X, verbose=0, batch_size=1)
 
-            if len(prediction_scaled.shape) == 3:
-                prediction_scaled = float(prediction_scaled[0][0][0])
-            else:
-                prediction_scaled = float(prediction_scaled[0][0])
+                if len(prediction_scaled.shape) == 3:
+                    prediction_scaled = float(prediction_scaled[0][0][0])
+                else:
+                    prediction_scaled = float(prediction_scaled[0][0])
 
-            # Reverse scale using saved config
-            config_file = os.path.join(MODEL_PATH, 'lstm_config.pkl')
-            if os.path.exists(config_file):
-                config = joblib.load(config_file)
-                y_min = config.get('y_min', 0)
-                y_max = config.get('y_max', 1)
-                prediction = prediction_scaled * (y_max - y_min) + y_min
-            else:
-                prediction = prediction_scaled
+                config_file = os.path.join(MODEL_PATH, 'lstm_config.pkl')
+                if os.path.exists(config_file):
+                    config = joblib.load(config_file)
+                    y_min = config.get('y_min', 0)
+                    y_max = config.get('y_max', 1)
+                    prediction = prediction_scaled * (y_max - y_min) + y_min
+                else:
+                    prediction = prediction_scaled
 
-            print(f"   📈 Scaled: {prediction_scaled:.4f} → Real: {prediction:.2f} kWh")
+                print(f"   📈 LSTM: {prediction:.2f} kWh")
+
+            except Exception as lstm_error:
+                print(f"❌ LSTM failed: {lstm_error}")
+                return jsonify({
+                    'success': False,
+                    'error': 'LSTM model failed (may be out of memory on free tier). Try Random Forest.',
+                    'suggestion': 'Use random_forest model instead'
+                }), 500
+
         else:
             X = prepare_features(features, 'simple')
             prediction = float(models[model_name].predict(X)[0])
             print(f"   📈 Prediction: {prediction:.2f} kWh")
 
-        # Save to history
+        # Save history
         entry = {
             'timestamp': datetime.now().isoformat(),
             'model': model_name,
