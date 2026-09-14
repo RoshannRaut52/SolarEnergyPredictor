@@ -45,7 +45,6 @@ def load_models():
     global models, scaler, feature_names
 
     print("📂 Loading models...")
-    print(f"📁 Project root: {PROJECT_ROOT}")
     print(f"📁 Model path: {MODEL_PATH}")
 
     if not os.path.exists(MODEL_PATH):
@@ -56,14 +55,17 @@ def load_models():
     for f in os.listdir(MODEL_PATH):
         print(f"   - {f}")
 
+    # Scaler
     try:
-        # Scaler
         scaler_file = os.path.join(MODEL_PATH, 'scaler.pkl')
         if os.path.exists(scaler_file):
             scaler = joblib.load(scaler_file)
             print("✅ Scaler loaded")
+    except Exception as e:
+        print(f"❌ Scaler failed: {e}")
 
-        # Feature names
+    # Feature names
+    try:
         features_file = os.path.join(MODEL_PATH, 'feature_names.pkl')
         if os.path.exists(features_file):
             feature_names = joblib.load(features_file)
@@ -75,20 +77,29 @@ def load_models():
                 'Station.pressure', 'Altimeter'
             ]
             print("⚠️ Using default feature names")
+    except Exception as e:
+        print(f"❌ Feature names failed: {e}")
 
-        # Random Forest
+    # Random Forest (independent try)
+    try:
         rf_file = os.path.join(MODEL_PATH, 'random_forest.pkl')
         if os.path.exists(rf_file):
             models['random_forest'] = joblib.load(rf_file)
             print("✅ Random Forest loaded")
+    except Exception as e:
+        print(f"❌ Random Forest failed: {e}")
 
-        # Gradient Boosting
+    # Gradient Boosting (independent try)
+    try:
         gb_file = os.path.join(MODEL_PATH, 'gradient_boosting.pkl')
         if os.path.exists(gb_file):
             models['gradient_boosting'] = joblib.load(gb_file)
             print("✅ Gradient Boosting loaded")
+    except Exception as e:
+        print(f"❌ Gradient Boosting failed: {e}")
 
-        # LSTM (try .keras first, then .h5)
+    # LSTM (independent try)
+    try:
         lstm_keras = os.path.join(MODEL_PATH, 'lstm_model.keras')
         lstm_h5 = os.path.join(MODEL_PATH, 'lstm_model.h5')
 
@@ -98,11 +109,8 @@ def load_models():
         elif os.path.exists(lstm_h5):
             models['lstm'] = keras.models.load_model(lstm_h5, compile=False)
             print("✅ LSTM loaded (.h5)")
-
     except Exception as e:
-        print(f"❌ Error loading models: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ LSTM failed: {e}")
 
     print("=" * 50)
     print(f"✅ Models loaded: {list(models.keys())}")
