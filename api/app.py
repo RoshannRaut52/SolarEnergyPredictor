@@ -178,7 +178,7 @@ def home():
 @app.route('/predict')
 def predict_page():
     """Prediction page"""
-    return render_template('predict.html')
+    return render_template('predict.html', models=list(models.keys()))
 
 
 @app.route('/models')

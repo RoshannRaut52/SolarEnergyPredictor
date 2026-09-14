@@ -74,11 +74,13 @@
                 <form id="predictForm">
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>Model</label>
-                        <select id="modelSelect">
-                            <option value="gradient_boosting" selected>Gradient Boosting</option>
-                            <option value="random_forest">Random Forest</option>
-                            <option value="lstm">LSTM Neural Network</option>
-                        </select>
+                        <select id="modelSelect" name="modelSelect" aria-label="Select model">
+    {% for m in models %}
+    <option value="{{ m }}" {% if m == 'gradient_boosting' %}selected{% endif %}>
+        {{ m.replace('_', ' ').title() }}
+    </option>
+    {% endfor %}
+</select>
                     </div>
 
                     <div class="form-row">
