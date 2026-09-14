@@ -1,0 +1,59 @@
+[
+  {
+    "timestamp": "2026-09-14T21:50:59.745038",
+    "model": "lstm",
+    "features": {
+      "Hour": 12,
+      "Day": 15,
+      "Month": 6,
+      "Year": 2016,
+      "Cloud.coverage": 30,
+      "Visibility": 10,
+      "Temperature": 25,
+      "Dew.point": 15,
+      "Relative.humidity": 60,
+      "Wind.speed": 8,
+      "Station.pressure": 1013,
+      "Altimeter": 29.92
+    },
+    "prediction": 2500.48
+  },
+  {
+    "timestamp": "2026-09-14T21:51:05.907699",
+    "model": "random_forest",
+    "features": {
+      "Hour": 12,
+      "Day": 15,
+      "Month": 6,
+      "Year": 2016,
+      "Cloud.coverage": 30,
+      "Visibility": 10,
+      "Temperature": 25,
+      "Dew.point": 15,
+      "Relative.humidity": 60,
+      "Wind.speed": 8,
+      "Station.pressure": 1013,
+      "Altimeter": 29.92
+    },
+    "prediction": 1983.77
+  },
+  {
+    "timestamp": "2026-09-14T21:51:09.334735",
+    "model": "gradient_boosting",
+    "features": {
+      "Hour": 12,
+      "Day": 15,
+      "Month": 6,
+      "Year": 2016,
+      "Cloud.coverage": 30,
+      "Visibility": 10,
+      "Temperature": 25,
+      "Dew.point": 15,
+      "Relative.humidity": 60,
+      "Wind.speed": 8,
+      "Station.pressure": 1013,
+      "Altimeter": 29.92
+    },
+    "prediction": 2450.2
+  }
+]

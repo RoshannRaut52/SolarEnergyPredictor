@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Energy Predictor - LSTM Model</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 750px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 0.95em;
+            margin-top: 5px;
+            -webkit-text-fill-color: #666;
+        }
+
+        .header .model-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.85em;
+            margin-bottom: 4px;
+        }
+
+        .form-group label .required {
+            color: #ef4444;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+
+        .form-group input:hover,
+        .form-group select:hover {
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 500px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.success {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .result.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .result .value {
+            font-size: 3.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .result .value .unit {
+            font-size: 0.4em;
+            opacity: 0.8;
+        }
+
+        .result .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .result .meta {
+            font-size: 0.8em;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        .result .features-used {
+            font-size: 0.7em;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .api-status {
+            font-size: 0.8em;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+            -webkit-text-fill-color: #10b981;
+        }
+
+        .api-status.offline {
+            color: #ef4444;
+            -webkit-text-fill-color: #ef4444;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10b981;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.offline {
+            background: #ef4444;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .loading-text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .model-info {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.85em;
+            color: #555;
+            border-left: 4px solid #667eea;
+        }
+
+        .model-info strong {
+            color: #333;
+        }
+
+        /* Accessibility improvements */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        /* Tooltip styles */
+        .form-group .hint {
+            font-size: 0.75em;
+            color: #888;
+            margin-top: 2px;
+            display: block;
+        }
+
+        /* Scrollable container for small screens */
+        .scrollable {
+            max-height: 80vh;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .scrollable::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollable::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .scrollable::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        .scrollable::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>☀️ Solar Energy Predictor</h1>
+            <p class="subtitle">Enter weather parameters to predict solar output</p>
+            <span class="model-badge">🏆 LSTM - Best Performer</span>
+        </div>
+
+        <div class="model-info">
+            <strong>📊 Model Information:</strong>
+            LSTM Neural Network (3 hidden layers, 20% dropout, Adam optimizer)
+            <br>
+            <strong>📈 Performance:</strong> MSE: 0.000054, R²: 0.92 (Best among all models)
+        </div>
+
+        <form id="predictForm" aria-label="Solar Energy Prediction Form">
+            <div class="form-group">
+                <label for="modelSelect">
+                    Select Model
+                    <span class="required">*</span>
+                </label>
+                <select id="modelSelect" aria-label="Select machine learning model">
+                    <option value="lstm" selected>🏆 LSTM Neural Network (Best)</option>
+                    <option value="gradient_boosting">📈 Gradient Boosting</option>
+                    <option value="random_forest">🌳 Random Forest</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="Hour">
+                        Hour
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Hour" 
+                        name="Hour"
+                        value="12" 
+                        min="0" 
+                        max="23"
+                        placeholder="e.g., 12"
+                        title="Enter hour of day (0-23)"
+                        aria-label="Hour of day (0-23)"
+                        required
+                    >
+                    <span class="hint">0 = midnight, 12 = noon</span>
+                </div>
+                <div class="form-group">
+                    <label for="Day">
+                        Day
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Day" 
+                        name="Day"
+                        value="15" 
+                        min="1" 
+                        max="31"
+                        placeholder="e.g., 15"
+                        title="Enter day of month (1-31)"
+                        aria-label="Day of month (1-31)"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="Month">
+                        Month
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Month" 
+                        name="Month"
+                        value="6" 
+                        min="1" 
+                        max="12"
+                        placeholder="e.g., 6"
+                        title="Enter month (1-12)"
+                        aria-label="Month of year (1-12)"
+                        required
+                    >
+                    <span class="hint">1 = January, 6 = June</span>
+                </div>
+                <div class="form-group">
+                    <label for="Year">
+                        Year
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Year" 
+                        name="Year"
+                        value="2016" 
+                        min="2000" 
+                        max="2030"
+                        placeholder="e.g., 2016"
+                        title="Enter year"
+                        aria-label="Year"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="Cloud.coverage">
+                        Cloud Coverage (%)
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Cloud.coverage" 
+                        name="Cloud.coverage"
+                        value="30" 
+                        min="0" 
+                        max="100"
+                        step="0.1"
+                        placeholder="e.g., 30"
+                        title="Enter cloud coverage percentage (0-100)"
+                        aria-label="Cloud coverage percentage (0-100)"
+                        required
+                    >
+                    <span class="hint">0% = clear sky, 100% = overcast</span>
+                </div>
+                <div class="form-group">
+                    <label for="Visibility">
+                        Visibility (miles)
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Visibility" 
+                        name="Visibility"
+                        value="10" 
+                        min="0" 
+                        max="30"
+                        step="0.1"
+                        placeholder="e.g., 10"
+                        title="Enter visibility in miles"
+                        aria-label="Visibility in miles"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="Temperature">
+                        Temperature (°C)
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Temperature" 
+                        name="Temperature"
+                        value="25" 
+                        min="-50" 
+                        max="60"
+                        step="0.1"
+                        placeholder="e.g., 25"
+                        title="Enter temperature in Celsius"
+                        aria-label="Temperature in Celsius"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="Dew.point">
+                        Dew Point (°C)
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Dew.point" 
+                        name="Dew.point"
+                        value="15" 
+                        min="-50" 
+                        max="40"
+                        step="0.1"
+                        placeholder="e.g., 15"
+                        title="Enter dew point temperature in Celsius"
+                        aria-label="Dew point temperature in Celsius"
+                        required
+                    >
+                    <span class="hint">Temperature when water vapor condenses</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="Relative.humidity">
+                        Relative Humidity (%)
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Relative.humidity" 
+                        name="Relative.humidity"
+                        value="60" 
+                        min="0" 
+                        max="100"
+                        step="0.1"
+                        placeholder="e.g., 60"
+                        title="Enter relative humidity percentage"
+                        aria-label="Relative humidity percentage"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="Wind.speed">
+                        Wind Speed (mph)
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Wind.speed" 
+                        name="Wind.speed"
+                        value="8" 
+                        min="0" 
+                        max="100"
+                        step="0.1"
+                        placeholder="e.g., 8"
+                        title="Enter wind speed in miles per hour"
+                        aria-label="Wind speed in miles per hour"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="Station.pressure">
+                        Station Pressure (hPa)
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Station.pressure" 
+                        name="Station.pressure"
+                        value="1013" 
+                        min="800" 
+                        max="1100"
+                        step="0.1"
+                        placeholder="e.g., 1013"
+                        title="Enter station pressure in hPa"
+                        aria-label="Station pressure in hPa"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="Altimeter">
+                        Altimeter (inHg)
+                        <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="number" 
+                        id="Altimeter" 
+                        name="Altimeter"
+                        value="29.92" 
+                        min="20" 
+                        max="35"
+                        step="0.01"
+                        placeholder="e.g., 29.92"
+                        title="Enter altimeter setting in inches of mercury"
+                        aria-label="Altimeter setting in inches of mercury"
+                        required
+                    >
+                </div>
+            </div>
+
+            <button type="submit" class="btn" id="predictBtn" aria-label="Predict solar output">
+                🚀 Predict Solar Output
+            </button>
+        </form>
+
+        <div id="result" class="result" role="status" aria-live="polite">
+            <div class="label">Predicted Solar Output</div>
+            <div class="value" id="predictionValue">-- <span class="unit">kWh</span></div>
+            <div class="meta" id="predictionMeta"></div>
+            <div class="features-used" id="featuresUsed"></div>
+            <div class="api-status" id="apiStatus">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">API Connected</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // CONFIGURATION
+        // =============================================
+        const API_URL = 'http://localhost:5000';
+
+        // =============================================
+        // DOM ELEMENTS
+        // =============================================
+        const form = document.getElementById('predictForm');
+        const resultDiv = document.getElementById('result');
+        const valueDisplay = document.getElementById('predictionValue');
+        const metaDisplay = document.getElementById('predictionMeta');
+        const featuresUsed = document.getElementById('featuresUsed');
+        const predictBtn = document.getElementById('predictBtn');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const apiStatus = document.getElementById('apiStatus');
+
+        const featureIds = [
+            'Hour', 'Day', 'Month', 'Year',
+            'Cloud.coverage', 'Visibility', 'Temperature',
+            'Dew.point', 'Relative.humidity', 'Wind.speed',
+            'Station.pressure', 'Altimeter'
+        ];
+
+        const featureLabels = {
+            'Hour': 'Hour',
+            'Day': 'Day',
+            'Month': 'Month',
+            'Year': 'Year',
+            'Cloud.coverage': 'Cloud Coverage',
+            'Visibility': 'Visibility',
+            'Temperature': 'Temperature',
+            'Dew.point': 'Dew Point',
+            'Relative.humidity': 'Relative Humidity',
+            'Wind.speed': 'Wind Speed',
+            'Station.pressure': 'Station Pressure',
+            'Altimeter': 'Altimeter'
+        };
+
+        // =============================================
+        // API STATUS CHECK
+        // =============================================
+        async function checkAPI() {
+            try {
+                const response = await fetch(`${API_URL}/health`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    console.log('✅ API is running');
+                    statusDot.className = 'status-dot';
+                    statusText.textContent = 'API Connected';
+                    apiStatus.className = 'api-status';
+                } else {
+                    setAPIOffline();
+                }
+            } catch (error) {
+                console.error('❌ API not reachable:', error);
+                setAPIOffline();
+            }
+        }
+
+        function setAPIOffline() {
+            statusDot.className = 'status-dot offline';
+            statusText.textContent = 'API Offline - Check Server';
+            apiStatus.className = 'api-status offline';
+            resultDiv.className = 'result show error';
+            valueDisplay.innerHTML = '⚠️ API Offline';
+            metaDisplay.textContent = 'Make sure the API server is running: python api/app.py';
+        }
+
+        // =============================================
+        // PREDICTION FORM HANDLER
+        // =============================================
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('📝 Form submitted');
+
+            // Collect features
+            const features = {};
+            let allValid = true;
+            featureIds.forEach(id => {
+                const el = document.getElementById(id);
+                const val = parseFloat(el.value);
+                if (isNaN(val)) {
+                    allValid = false;
+                    el.style.borderColor = '#ef4444';
+                } else {
+                    features[id] = val;
+                    el.style.borderColor = '#e0e0e0';
+                }
+                console.log(`${id}: ${features[id]}`);
+            });
+
+            if (!allValid) {
+                resultDiv.className = 'result show error';
+                valueDisplay.innerHTML = '❌ Invalid Input';
+                metaDisplay.textContent = 'Please fill all fields with valid numbers';
+                return;
+            }
+
+            const model = document.getElementById('modelSelect').value;
+            console.log('🤖 Model selected:', model);
+
+            // Show loading state
+            predictBtn.innerHTML = '<span class="loading-text"><span class="spinner"></span> Predicting...</span>';
+            predictBtn.disabled = true;
+            resultDiv.className = 'result';
+            resultDiv.style.display = 'none';
+
+            try {
+                const payload = { features, model };
+                console.log('📤 Sending payload:', payload);
+
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                console.log('📥 Response status:', response.status);
+                const data = await response.json();
+                console.log('📊 Response data:', data);
+
+                if (response.ok && data.success) {
+                    // Show success
+                    resultDiv.className = 'result show success';
+                    valueDisplay.innerHTML = `${data.prediction.toFixed(2)} <span class="unit">kWh</span>`;
+                    
+                    const modelName = data.model_used.replace('_', ' ').toUpperCase();
+                    const featureCount = data.features_used ? data.features_used.length : 12;
+                    
+                    metaDisplay.innerHTML = `
+                                <strong>Model:</strong> ${modelName}
+                                &nbsp;•&nbsp;
+                                <strong>Features:</strong> ${featureCount}
+                                &nbsp;•&nbsp;
+                                ${new Date().toLocaleString()}
+                            `;
+                    
+                    // Show feature importance if available
+                    if (data.feature_importance) {
+                        const sorted = Object.entries(data.feature_importance)
+                            .sort((a, b) => b[1] - a[1])
+                            .slice(0, 5);
+                        featuresUsed.textContent = `Top features: ${sorted.map(([k, v]) => `${featureLabels[k]||k} (${(v*100).toFixed(1)}%)`).join(', ')}`;
+                    } else {
+                        featuresUsed.textContent = `Using ${featureCount} weather features for prediction`;
+                    }
+                } else {
+                    resultDiv.className = 'result show error';
+                    valueDisplay.innerHTML = '❌ Error';
+                    metaDisplay.textContent = data.error || 'Something went wrong';
+                    featuresUsed.textContent = '';
+                }
+            } catch (error) {
+                console.error('❌ Fetch error:', error);
+                resultDiv.className = 'result show error';
+                valueDisplay.innerHTML = '❌ Connection Error';
+                metaDisplay.textContent = 'Cannot connect to API. Is the server running?';
+                featuresUsed.textContent = '';
+            }
+
+            // Reset button
+            predictBtn.innerHTML = '🚀 Predict Solar Output';
+            predictBtn.disabled = false;
+        });
+
+        // =============================================
+        // AUTO-PREDICT ON LOAD
+        // =============================================
+        window.addEventListener('load', () => {
+            console.log('🚀 Page loaded, checking API...');
+            checkAPI();
+            
+            setTimeout(() => {
+                console.log('⏳ Auto-predicting with default values...');
+                form.dispatchEvent(new Event('submit'));
+            }, 800);
+        });
+
+        // =============================================
+        // INPUT VALIDATION ON CHANGE
+        // =============================================
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const min = parseFloat(this.min);
+                const max = parseFloat(this.max);
+                let val = parseFloat(this.value);
+                
+                if (!isNaN(val)) {
+                    if (!isNaN(min) && val < min) this.value = min;
+                    if (!isNaN(max) && val > max) this.value = max;
+                }
+            });
+
+            input.addEventListener('input', function() {
+                if (this.value) {
+                    this.style.borderColor = '#e0e0e0';
+                }
+            });
+        });
+
+        // =============================================
+        // KEYBOARD ACCESSIBILITY
+        // =============================================
+        document.addEventListener('keydown', (e) => {
+            // Press Ctrl+Enter to submit form
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        console.log('✅ Solar Energy Predictor loaded successfully!');
+        console.log('📊 Default Model: LSTM (Best Performer)');
+        console.log('🔗 API URL:', API_URL);
+    </script>
+</body>
+</html>

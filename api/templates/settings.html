@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Solar Energy Predictor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+        .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 0 30px; display: flex; justify-content: space-between; align-items: center; height: 65px; box-shadow: 0 2px 15px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 1000; }
+        .navbar-brand { font-size: 1.4em; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; }
+        .navbar-menu { display: flex; gap: 10px; list-style: none; }
+        .navbar-menu a { color: #b0b8d0; text-decoration: none; padding: 8px 18px; border-radius: 8px; transition: all 0.3s; font-size: 0.95em; }
+        .navbar-menu a:hover { background: rgba(255,255,255,0.08); color: white; }
+        .navbar-menu a.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+
+        .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .page-title { font-size: 1.8em; color: #1a1a2e; margin-bottom: 8px; }
+        .page-subtitle { color: #666; margin-bottom: 30px; }
+
+        .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card-title { font-size: 1.15em; color: #1a1a2e; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #f0f2f5; }
+
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f0f0f0; }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label { font-weight: 600; color: #333; margin-bottom: 4px; }
+        .setting-desc { font-size: 0.85em; color: #888; }
+
+        .toggle { position: relative; width: 50px; height: 26px; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 26px; transition: 0.3s; }
+        .toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+        .toggle input:checked + .toggle-slider { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .toggle input:checked + .toggle-slider:before { transform: translateX(24px); }
+
+        .select-input { padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.9em; min-width: 200px; }
+        .select-input:focus { outline: none; border-color: #667eea; }
+
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 0.95em; font-weight: 600; cursor: pointer; transition: all 0.3s; text-decoration: none; display: inline-block; }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.4); }
+        .btn-outline { background: white; color: #667eea; border: 2px solid #667eea; }
+        .btn-outline:hover { background: #667eea; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 0.9em; }
+        .info-label { color: #888; }
+        .info-value { color: #333; font-weight: 600; }
+
+        .footer { text-align: center; padding: 30px; color: #888; font-size: 0.9em; }
+
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; height: auto; padding: 15px; }
+            .navbar-menu { flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">☀️ SolarAI</a>
+        <ul class="navbar-menu">
+            <li><a href="/">🏠 Dashboard</a></li>
+            <li><a href="/predict">🔮 Predict</a></li>
+            <li><a href="/models">🤖 Models</a></li>
+            <li><a href="/history">📈 History</a></li>
+            <li><a href="/settings" class="active">⚙️ Settings</a></li>
+            <li><a href="/about">ℹ️ About</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1 class="page-title">⚙️ Settings</h1>
+        <p class="page-subtitle">Configure your preferences</p>
+
+        <div class="card">
+            <h2 class="card-title">🎯 Prediction Preferences</h2>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Default Model</div>
+                    <div class="setting-desc">Choose which model loads first on Predict page</div>
+                </div>
+                <select class="select-input" id="defaultModel">
+                    <option value="gradient_boosting">Gradient Boosting</option>
+                    <option value="random_forest">Random Forest</option>
+                    <option value="lstm">LSTM Neural Network</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Auto-Predict on Load</div>
+                    <div class="setting-desc">Automatically make a prediction when page loads</div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="autoPredict">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">🔔 Notifications</h2>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Sound Alerts</div>
+                    <div class="setting-desc">Play a sound when prediction completes</div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="soundAlerts">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Confidence Warnings</div>
+                    <div class="setting-desc">Warn when model confidence is low</div>
+                </div>
+                <label class="toggle">
+                    <input type="checkbox" id="confidenceWarnings" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">💾 Data Management</h2>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Export History</div>
+                    <div class="setting-desc">Download all predictions as CSV</div>
+                </div>
+                <button class="btn btn-outline" onclick="exportHistory()">📥 Export CSV</button>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <div class="setting-label">Clear History</div>
+                    <div class="setting-desc">Delete all prediction history (cannot be undone)</div>
+                </div>
+                <button class="btn btn-danger" onclick="clearHistory()">🗑️ Clear</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">ℹ️ System Information</h2>
+            <div class="info-row"><span class="info-label">API Endpoint</span><span class="info-value" id="apiEndpoint">http://localhost:5000</span></div>
+            <div class="info-row"><span class="info-label">Models Loaded</span><span class="info-value" id="modelsLoaded">--</span></div>
+            <div class="info-row"><span class="info-label">API Status</span><span class="info-value" id="apiStatus">--</span></div>
+            <div class="info-row"><span class="info-label">Total Predictions</span><span class="info-value" id="totalPredictions">--</span></div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+        </div>
+    </div>
+
+    <div class="footer">Built with ❤️ using Flask + TensorFlow + scikit-learn</div>
+
+    <script>
+        // Load settings from localStorage
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('solarSettings') || '{}');
+            document.getElementById('defaultModel').value = settings.defaultModel || 'gradient_boosting';
+            document.getElementById('autoPredict').checked = settings.autoPredict || false;
+            document.getElementById('soundAlerts').checked = settings.soundAlerts || false;
+            document.getElementById('confidenceWarnings').checked = settings.confidenceWarnings !== false;
+        }
+
+        function saveSettings() {
+            const settings = {
+                defaultModel: document.getElementById('defaultModel').value,
+                autoPredict: document.getElementById('autoPredict').checked,
+                soundAlerts: document.getElementById('soundAlerts').checked,
+                confidenceWarnings: document.getElementById('confidenceWarnings').checked
+            };
+            localStorage.setItem('solarSettings', JSON.stringify(settings));
+            alert('✅ Settings saved!');
+        }
+
+        async function exportHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+
+                if (!data.history || data.history.length === 0) {
+                    alert('No history to export');
+                    return;
+                }
+
+                const headers = ['Timestamp', 'Model', 'Prediction'];
+                const rows = data.history.map(h => [
+                    h.timestamp, h.model, h.prediction
+                ]);
+
+                const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `solar_predictions_${Date.now()}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                alert('❌ Export failed');
+            }
+        }
+
+        async function clearHistory() {
+            if (!confirm('Delete ALL prediction history? This cannot be undone.')) return;
+            try {
+                const res = await fetch('/api/history', { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    alert('✅ History cleared!');
+                    loadSystemInfo();
+                }
+            } catch (e) {
+                alert('❌ Failed');
+            }
+        }
+
+        async function loadSystemInfo() {
+            try {
+                const res = await fetch('/api/health');
+                const data = await res.json();
+                document.getElementById('modelsLoaded').textContent = data.models_loaded || 0;
+                document.getElementById('apiStatus').textContent = '🟢 Online';
+            } catch (e) {
+                document.getElementById('apiStatus').textContent = '🔴 Offline';
+            }
+
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+                document.getElementById('totalPredictions').textContent = data.total || 0;
+            } catch (e) {}
+        }
+
+        loadSettings();
+        loadSystemInfo();
+    </script>
+</body>
+</html>

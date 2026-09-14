@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Models - Solar Energy Predictor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+        .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 0 30px; display: flex; justify-content: space-between; align-items: center; height: 65px; box-shadow: 0 2px 15px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 1000; }
+        .navbar-brand { font-size: 1.4em; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; }
+        .navbar-menu { display: flex; gap: 10px; list-style: none; }
+        .navbar-menu a { color: #b0b8d0; text-decoration: none; padding: 8px 18px; border-radius: 8px; transition: all 0.3s; font-size: 0.95em; }
+        .navbar-menu a:hover { background: rgba(255,255,255,0.08); color: white; }
+        .navbar-menu a.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .page-title { font-size: 1.8em; color: #1a1a2e; margin-bottom: 8px; }
+        .page-subtitle { color: #666; margin-bottom: 30px; }
+
+        .models-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; }
+
+        .model-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative; transition: transform 0.3s; }
+        .model-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+
+        .corner-badge { position: absolute; top: 15px; right: 15px; padding: 4px 12px; border-radius: 12px; font-size: 0.7em; font-weight: 700; }
+        .badge-best { background: #fbbf24; color: #78350f; }
+        .badge-good { background: #60a5fa; color: white; }
+
+        .model-icon { font-size: 2.5em; margin-bottom: 10px; }
+        .model-name { font-size: 1.3em; font-weight: 700; color: #1a1a2e; margin-bottom: 5px; }
+        .model-type { color: #888; font-size: 0.85em; margin-bottom: 15px; }
+        .model-desc { color: #666; font-size: 0.9em; margin-bottom: 20px; line-height: 1.5; }
+
+        .model-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-item { background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; }
+        .stat-value { font-weight: 700; color: #1a1a2e; font-size: 1.1em; }
+        .stat-label { font-size: 0.75em; color: #888; }
+
+        .progress-bar { height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); }
+
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 0.95em; font-weight: 600; cursor: pointer; transition: all 0.3s; text-decoration: none; display: inline-block; width: 100%; text-align: center; }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.4); }
+
+        .feature-section { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-top: 30px; }
+        .feature-row { display: flex; align-items: center; margin-bottom: 12px; }
+        .feature-name { width: 150px; font-size: 0.9em; color: #555; }
+        .feature-bar { flex: 1; height: 10px; background: #f0f2f5; border-radius: 5px; overflow: hidden; margin: 0 15px; }
+        .feature-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); }
+        .feature-value { width: 50px; text-align: right; font-weight: 600; color: #667eea; }
+
+        .footer { text-align: center; padding: 30px; color: #888; font-size: 0.9em; margin-top: 40px; }
+
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; height: auto; padding: 15px; }
+            .navbar-menu { flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">☀️ SolarAI</a>
+        <ul class="navbar-menu">
+            <li><a href="/">🏠 Dashboard</a></li>
+            <li><a href="/predict">🔮 Predict</a></li>
+            <li><a href="/models" class="active">🤖 Models</a></li>
+            <li><a href="/history">📈 History</a></li>
+            <li><a href="/settings">⚙️ Settings</a></li>
+            <li><a href="/about">ℹ️ About</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1 class="page-title">🤖 Machine Learning Models</h1>
+        <p class="page-subtitle">Compare and select from our trained models</p>
+
+        <div class="models-grid" id="modelsGrid">
+            <!-- Populated by JS -->
+        </div>
+
+        <div class="feature-section">
+            <h2 style="font-size:1.15em; color:#1a1a2e; margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid #f0f2f5;">📊 Feature Importance</h2>
+            <p style="color:#666; margin-bottom:20px;">Which weather parameters matter most for predictions?</p>
+            <div id="featureBars"></div>
+        </div>
+    </div>
+
+    <div class="footer">Built with ❤️ using Flask + TensorFlow + scikit-learn</div>
+
+    <script>
+        const models = [
+            {
+                id: 'gradient_boosting', name: 'Gradient Boosting', icon: '📈',
+                type: 'Ensemble Learning', accuracy: 85, r2: 0.82, mse: 0.856,
+                desc: 'Sequential tree building with learning rate 0.5, 35 trees, tree complexity 15.'
+            },
+            {
+                id: 'random_forest', name: 'Random Forest', icon: '🌳',
+                type: 'Ensemble Learning', accuracy: 83, r2: 0.79, mse: 0.912,
+                desc: '100 decision trees with maximum depth 15 and random sampling.'
+            },
+            {
+                id: 'lstm', name: 'LSTM Neural Network', icon: '🧠',
+                type: 'Deep Learning', accuracy: 92, r2: 0.92, mse: 0.054,
+                desc: '2-layer LSTM with 24-hour sequence input, 20% dropout, Adam optimizer.'
+            }
+        ];
+
+        const featureImportance = [
+            ['Temperature', 28], ['Cloud Coverage', 25], ['Humidity', 18],
+            ['Dew Point', 12], ['Wind Speed', 7], ['Visibility', 5],
+            ['Pressure', 3], ['Altimeter', 2]
+        ];
+
+        function renderModels() {
+            const grid = document.getElementById('modelsGrid');
+            grid.innerHTML = models.map(m => {
+                const badge = m.accuracy >= 90
+                    ? '<span class="corner-badge badge-best">🏆 BEST</span>'
+                    : m.accuracy >= 85
+                    ? '<span class="corner-badge badge-good">⭐ GOOD</span>'
+                    : '';
+
+                return `
+                    <div class="model-card">
+                        ${badge}
+                        <div class="model-icon">${m.icon}</div>
+                        <div class="model-name">${m.name}</div>
+                        <div class="model-type">${m.type}</div>
+                        <p class="model-desc">${m.desc}</p>
+
+                        <div class="model-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">${m.accuracy}%</div>
+                                <div class="stat-label">Accuracy</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${m.r2}</div>
+                                <div class="stat-label">R² Score</div>
+                            </div>
+                        </div>
+
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width:${m.accuracy}%"></div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.75em; color:#888; margin-bottom:15px;">
+                            <span>Performance</span>
+                            <span>${m.accuracy}%</span>
+                        </div>
+
+                        <a href="/predict" class="btn btn-primary">🔮 Use Model</a>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderFeatureBars() {
+            const container = document.getElementById('featureBars');
+            container.innerHTML = featureImportance.map(([name, value]) => `
+                <div class="feature-row">
+                    <div class="feature-name">${name}</div>
+                    <div class="feature-bar">
+                        <div class="feature-bar-fill" style="width:${value * 3.5}%"></div>
+                    </div>
+                    <div class="feature-value">${value}%</div>
+                </div>
+            `).join('');
+        }
+
+        renderModels();
+        renderFeatureBars();
+    </script>
+</body>
+</html>

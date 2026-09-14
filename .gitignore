@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv/
+
+# Models (too large for git)
+models/saved_models/*.h5
+models/saved_models/*.keras
+models/saved_models/*.pkl
+
+# Data (optional - uncomment if you don't want to commit data)
+# data/processed/*.csv
+# data/raw/*.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Flask
+instance/
+.webassets-cache
+
+# Jupyter
+.ipynb_checkpoints/

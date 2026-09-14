@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict - Solar Energy Predictor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+        .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 0 30px; display: flex; justify-content: space-between; align-items: center; height: 65px; box-shadow: 0 2px 15px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 1000; }
+        .navbar-brand { font-size: 1.4em; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; }
+        .navbar-menu { display: flex; gap: 10px; list-style: none; }
+        .navbar-menu a { color: #b0b8d0; text-decoration: none; padding: 8px 18px; border-radius: 8px; transition: all 0.3s; font-size: 0.95em; }
+        .navbar-menu a:hover { background: rgba(255,255,255,0.08); color: white; }
+        .navbar-menu a.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .page-title { font-size: 1.8em; color: #1a1a2e; margin-bottom: 8px; }
+        .page-subtitle { color: #666; margin-bottom: 30px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card-title { font-size: 1.15em; color: #1a1a2e; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #f0f2f5; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.8em; font-weight: 600; color: #555; margin-bottom: 4px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.9em; transition: border-color 0.3s; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
+
+        .btn { padding: 14px 24px; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s; width: 100%; }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; margin-top: 20px; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.4); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        #resultBox { text-align: center; padding: 50px 20px; color: #999; }
+
+        .result-value { font-size: 3.5em; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 15px 0; }
+        .result-unit { color: #888; font-size: 1.2em; }
+        .result-label { font-size: 0.9em; color: #666; margin-bottom: 10px; }
+        .result-meta { margin-top: 20px; color: #666; font-size: 0.9em; line-height: 1.8; }
+        .result-error { color: #ef4444; font-size: 1.1em; }
+
+        .footer { text-align: center; padding: 30px; color: #888; font-size: 0.9em; margin-top: 40px; }
+
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr 1fr; }
+            .navbar { flex-direction: column; height: auto; padding: 15px; }
+            .navbar-menu { flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">☀️ SolarAI</a>
+        <ul class="navbar-menu">
+            <li><a href="/">🏠 Dashboard</a></li>
+            <li><a href="/predict" class="active">🔮 Predict</a></li>
+            <li><a href="/models">🤖 Models</a></li>
+            <li><a href="/history">📈 History</a></li>
+            <li><a href="/settings">⚙️ Settings</a></li>
+            <li><a href="/about">ℹ️ About</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1 class="page-title">🔮 Make Prediction</h1>
+        <p class="page-subtitle">Enter weather parameters to predict solar output</p>
+
+        <div class="grid-2">
+            <div class="card">
+                <h2 class="card-title">📝 Weather Parameters</h2>
+                <form id="predictForm">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Model</label>
+                        <select id="modelSelect">
+                            <option value="gradient_boosting" selected>Gradient Boosting</option>
+                            <option value="random_forest">Random Forest</option>
+                            <option value="lstm">LSTM Neural Network</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group"><label>Hour</label><input type="number" id="Hour" value="12" min="0" max="23"></div>
+                        <div class="form-group"><label>Day</label><input type="number" id="Day" value="15" min="1" max="31"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Month</label><input type="number" id="Month" value="6" min="1" max="12"></div>
+                        <div class="form-group"><label>Year</label><input type="number" id="Year" value="2016"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Cloud Coverage (%)</label><input type="number" id="Cloud.coverage" value="30" step="0.1"></div>
+                        <div class="form-group"><label>Visibility (mi)</label><input type="number" id="Visibility" value="10" step="0.1"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Temperature (°C)</label><input type="number" id="Temperature" value="25" step="0.1"></div>
+                        <div class="form-group"><label>Dew Point (°C)</label><input type="number" id="Dew.point" value="15" step="0.1"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Humidity (%)</label><input type="number" id="Relative.humidity" value="60" step="0.1"></div>
+                        <div class="form-group"><label>Wind Speed (mph)</label><input type="number" id="Wind.speed" value="8" step="0.1"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Station Pressure (hPa)</label><input type="number" id="Station.pressure" value="1013" step="0.1"></div>
+                        <div class="form-group"><label>Altimeter (inHg)</label><input type="number" id="Altimeter" value="29.92" step="0.01"></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="predictBtn">🚀 Predict Solar Output</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">📊 Prediction Result</h2>
+                <div id="resultBox">
+                    <div style="font-size:4em; margin-bottom:15px;">🔮</div>
+                    <p>Fill the form and click Predict</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">Built with ❤️ using Flask + TensorFlow + scikit-learn</div>
+
+    <script>
+        const featureIds = ['Hour', 'Day', 'Month', 'Year', 'Cloud.coverage', 'Visibility',
+                            'Temperature', 'Dew.point', 'Relative.humidity', 'Wind.speed',
+                            'Station.pressure', 'Altimeter'];
+
+        document.getElementById('predictForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('predictBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Predicting...';
+
+            const features = {};
+            featureIds.forEach(id => features[id] = parseFloat(document.getElementById(id).value) || 0);
+            const model = document.getElementById('modelSelect').value;
+
+            try {
+                const res = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({features, model})
+                });
+                const data = await res.json();
+                const box = document.getElementById('resultBox');
+
+                if (data.success) {
+                    box.innerHTML = `
+                        <div class="result-label">Predicted Solar Output</div>
+                        <div class="result-value">${data.prediction.toFixed(2)}</div>
+                        <div class="result-unit">kWh</div>
+                        <div class="result-meta">
+                            Model: <strong>${data.model_used.replace('_', ' ').toUpperCase()}</strong><br>
+                            ${new Date(data.timestamp).toLocaleString()}
+                        </div>
+                    `;
+                } else {
+                    box.innerHTML = `<div class="result-error">❌ ${data.error}</div>`;
+                }
+            } catch (err) {
+                document.getElementById('resultBox').innerHTML = `<div class="result-error">❌ Connection error: ${err.message}</div>`;
+            }
+
+            btn.disabled = false;
+            btn.textContent = '🚀 Predict Solar Output';
+        });
+    </script>
+</body>
+</html>

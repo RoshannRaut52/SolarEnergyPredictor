@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Solar Energy Predictor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+        .navbar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 0 30px; display: flex; justify-content: space-between; align-items: center; height: 65px; box-shadow: 0 2px 15px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 1000; }
+        .navbar-brand { font-size: 1.4em; font-weight: 700; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; }
+        .navbar-menu { display: flex; gap: 10px; list-style: none; }
+        .navbar-menu a { color: #b0b8d0; text-decoration: none; padding: 8px 18px; border-radius: 8px; transition: all 0.3s; font-size: 0.95em; }
+        .navbar-menu a:hover { background: rgba(255,255,255,0.08); color: white; }
+        .navbar-menu a.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+
+        .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .page-title { font-size: 1.8em; color: #1a1a2e; margin-bottom: 8px; }
+        .page-subtitle { color: #666; margin-bottom: 30px; }
+
+        .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .card-title { font-size: 1.15em; color: #1a1a2e; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #f0f2f5; }
+
+        p { color: #555; line-height: 1.7; margin-bottom: 15px; font-size: 0.95em; }
+        ul { padding-left: 20px; margin-bottom: 15px; }
+        ul li { color: #555; line-height: 1.8; margin-bottom: 5px; }
+
+        .tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px; }
+        .tech-item { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center; }
+        .tech-item .icon { font-size: 2em; margin-bottom: 8px; }
+        .tech-item .name { font-weight: 600; color: #1a1a2e; font-size: 0.9em; }
+
+        .hero { text-align: center; padding: 20px 0 30px; }
+        .hero h1 { font-size: 2.5em; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 15px; }
+        .hero p { font-size: 1.05em; color: #666; max-width: 600px; margin: 0 auto 20px; }
+
+        .footer { text-align: center; padding: 30px; color: #888; font-size: 0.9em; }
+        .footer a { color: #667eea; text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; height: auto; padding: 15px; }
+            .navbar-menu { flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">☀️ SolarAI</a>
+        <ul class="navbar-menu">
+            <li><a href="/">🏠 Dashboard</a></li>
+            <li><a href="/predict">🔮 Predict</a></li>
+            <li><a href="/models">🤖 Models</a></li>
+            <li><a href="/history">📈 History</a></li>
+            <li><a href="/settings">⚙️ Settings</a></li>
+            <li><a href="/about" class="active">ℹ️ About</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>☀️ Solar Energy Predictor</h1>
+            <p>A full-stack machine learning application for predicting solar energy output based on weather parameters.</p>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">🎯 Project Overview</h2>
+            <p>This project implements multiple machine learning algorithms to predict short-term solar energy output based on 12 weather parameters. It features a Flask REST API and an interactive web interface for real-time predictions.</p>
+            <p>Based on the CS229 final project — <em>"What weather features are the most influential for solar energy prediction at University of Illinois?"</em></p>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">🧠 Machine Learning Models</h2>
+            <ul>
+                <li><strong>Gradient Boosting</strong> — Ensemble model with 35 trees, tree complexity 15</li>
+                <li><strong>Random Forest</strong> — 100 decision trees with max depth 15</li>
+                <li><strong>LSTM Neural Network</strong> — 2-layer LSTM with 24-hour sequence input</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">🛠️ Technology Stack</h2>
+            <div class="tech-grid">
+                <div class="tech-item"><div class="icon">🐍</div><div class="name">Python 3.13</div></div>
+                <div class="tech-item"><div class="icon">🌶️</div><div class="name">Flask</div></div>
+                <div class="tech-item"><div class="icon">🧠</div><div class="name">TensorFlow</div></div>
+                <div class="tech-item"><div class="icon">📊</div><div class="name">scikit-learn</div></div>
+                <div class="tech-item"><div class="icon">🐼</div><div class="name">pandas</div></div>
+                <div class="tech-item"><div class="icon">🎨</div><div class="name">HTML/CSS/JS</div></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">📊 Feature Importance</h2>
+            <p>Based on our analysis, the most influential weather parameters for solar prediction are:</p>
+            <ul>
+                <li><strong>Temperature</strong> (28%)</li>
+                <li><strong>Cloud Coverage</strong> (25%)</li>
+                <li><strong>Humidity</strong> (18%)</li>
+                <li><strong>Dew Point</strong> (12%)</li>
+                <li><strong>Wind Speed</strong> (7%)</li>
+                <li>Visibility, Pressure, Altimeter (10% combined)</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">📚 References</h2>
+            <ul>
+                <li>CS229 Final Report — Solar Energy Prediction at University of Illinois</li>
+                <li>NOAA Weather Data — Hourly meteorological parameters</li>
+                <li>University of Illinois Solar Plant — Historical energy output</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer">
+        Built with ❤️ using Flask + TensorFlow + scikit-learn |
+        <a href="https://github.com/yourusername/SolarEnergyPredictor">GitHub</a>
+    </div>
+</body>
+</html>
