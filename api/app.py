@@ -192,10 +192,22 @@ def predict_page():
     return render_template('predict.html', models=ordered)
 
 
+METRICS_FILE = os.path.join(PROJECT_ROOT, 'models', 'model_metrics.json')
+
+def load_metrics():
+    """Load real model metrics from JSON"""
+    if os.path.exists(METRICS_FILE):
+        with open(METRICS_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+
+# Update /models route
 @app.route('/models')
 def models_page():
-    """Models page"""
-    return render_template('models.html')
+    """Models page with real metrics"""
+    metrics = load_metrics()
+    return render_template('models.html', metrics=metrics)
 
 
 @app.route('/history')

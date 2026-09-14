@@ -1,0 +1,26 @@
+{
+  "random_forest": {
+    "mse": 402982.8883,
+    "rmse": 634.8093,
+    "mae": 441.6374,
+    "r2": 0.809,
+    "accuracy": 80.9,
+    "test_samples": 754
+  },
+  "gradient_boosting": {
+    "mse": 355993.8453,
+    "rmse": 596.6522,
+    "mae": 429.3311,
+    "r2": 0.8313,
+    "accuracy": 83.1,
+    "test_samples": 754
+  },
+  "lstm": {
+    "mse": 2130902.8665,
+    "rmse": 1459.7612,
+    "mae": 1277.0472,
+    "r2": -0.0126,
+    "accuracy": 0,
+    "test_samples": 730
+  }
+}

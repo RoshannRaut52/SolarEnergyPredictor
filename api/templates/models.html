@@ -92,22 +92,37 @@
 
     <script>
         const models = [
-            {
-                id: 'gradient_boosting', name: 'Gradient Boosting', icon: '📈',
-                type: 'Ensemble Learning', accuracy: 85, r2: 0.82, mse: 0.856,
-                desc: 'Sequential tree building with learning rate 0.5, 35 trees, tree complexity 15.'
-            },
-            {
-                id: 'random_forest', name: 'Random Forest', icon: '🌳',
-                type: 'Ensemble Learning', accuracy: 83, r2: 0.79, mse: 0.912,
-                desc: '100 decision trees with maximum depth 15 and random sampling.'
-            },
-            {
-                id: 'lstm', name: 'LSTM Neural Network', icon: '🧠',
-                type: 'Deep Learning', accuracy: 92, r2: 0.92, mse: 0.054,
-                desc: '2-layer LSTM with 24-hour sequence input, 20% dropout, Adam optimizer.'
-            }
-        ];
+        {
+            id: 'gradient_boosting',
+            name: 'Gradient Boosting',
+            icon: '📈',
+            type: 'Ensemble Learning',
+            accuracy: {{ metrics.get('gradient_boosting', {}).get('accuracy', 'N/A') }},
+            r2: {{ metrics.get('gradient_boosting', {}).get('r2', 'N/A') }},
+            mse: {{ metrics.get('gradient_boosting', {}).get('mse', 'N/A') }},
+            desc: 'Sequential tree building with learning rate 0.5, 35 trees.'
+        },
+        {
+            id: 'random_forest',
+            name: 'Random Forest',
+            icon: '🌳',
+            type: 'Ensemble Learning',
+            accuracy: {{ metrics.get('random_forest', {}).get('accuracy', 'N/A') }},
+            r2: {{ metrics.get('random_forest', {}).get('r2', 'N/A') }},
+            mse: {{ metrics.get('random_forest', {}).get('mse', 'N/A') }},
+            desc: '100 decision trees with maximum depth 15.'
+        },
+        {
+            id: 'lstm',
+            name: 'LSTM Neural Network',
+            icon: '🧠',
+            type: 'Deep Learning',
+            accuracy: {{ metrics.get('lstm', {}).get('accuracy', 'N/A') }},
+            r2: {{ metrics.get('lstm', {}).get('r2', 'N/A') }},
+            mse: {{ metrics.get('lstm', {}).get('mse', 'N/A') }},
+            desc: '2-layer LSTM with 24-hour sequence input.'
+        }
+    ];
 
         const featureImportance = [
             ['Temperature', 28], ['Cloud Coverage', 25], ['Humidity', 18],
