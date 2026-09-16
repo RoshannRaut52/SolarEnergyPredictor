@@ -11,6 +11,14 @@ from tensorflow import keras
 import warnings
 warnings.filterwarnings('ignore')
 
+
+# Limit TensorFlow CPU/memory usage for Render free tier
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_NUM_INTRAOP_THREADS'] = '1'
+os.environ['TF_NUM_INTEROP_THREADS'] = '1'
+os.environ['OMP_NUM_THREADS'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
 # ============================================================
 # PATHS
 # ============================================================
@@ -278,17 +286,25 @@ def api_predict():
 
         # LSTM branch with extra safety
         if model_name == 'lstm':
+            lstm_model = get_lstm_model()
+            if lstm_model is None:
+                return jsonify({
+                    'success': False,
+                    'error': 'LSTM model not available. Try Random Forest or Gradient Boosting.',
+                    'available_models': [m for m in models.keys() if m != 'lstm']
+                }), 503
+            
             try:
                 X = prepare_features(features, 'lstm')
                 print(f"   LSTM input shape: {X.shape}")
-
-                prediction_scaled = models['lstm'].predict(X, verbose=0, batch_size=1)
-
+                
+                prediction_scaled = lstm_model.predict(X, verbose=0, batch_size=1)
+                
                 if len(prediction_scaled.shape) == 3:
                     prediction_scaled = float(prediction_scaled[0][0][0])
                 else:
                     prediction_scaled = float(prediction_scaled[0][0])
-
+                
                 config_file = os.path.join(MODEL_PATH, 'lstm_config.pkl')
                 if os.path.exists(config_file):
                     config = joblib.load(config_file)
@@ -297,15 +313,17 @@ def api_predict():
                     prediction = prediction_scaled * (y_max - y_min) + y_min
                 else:
                     prediction = prediction_scaled
-
+                
                 print(f"   📈 LSTM: {prediction:.2f} kWh")
-
-            except Exception as lstm_error:
-                print(f"❌ LSTM failed: {lstm_error}")
+            
+            except Exception as lstm_err:
+                print(f"❌ LSTM predict failed: {lstm_err}")
+                import traceback
+                traceback.print_exc()
                 return jsonify({
                     'success': False,
-                    'error': 'LSTM model failed (may be out of memory on free tier). Try Random Forest.',
-                    'suggestion': 'Use random_forest model instead'
+                    'error': 'LSTM inference failed. Try Random Forest or Gradient Boosting.',
+                    'available_models': [m for m in models.keys() if m != 'lstm']
                 }), 500
 
         else:
